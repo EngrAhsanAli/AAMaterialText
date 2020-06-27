@@ -1,0 +1,16 @@
+PODS:
+  - AAMaterialText (1.0)
+
+DEPENDENCIES:
+  - AAMaterialText (from `../`)
+
+EXTERNAL SOURCES:
+  AAMaterialText:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  AAMaterialText: c2e45a3332e4a76d741081a857a0f24cd308668b
+
+PODFILE CHECKSUM: 8b31a77673d0bb0c18d0f7cc7cc8a88316a08287
+
+COCOAPODS: 1.9.3

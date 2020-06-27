@@ -1,0 +1,11 @@
+use_frameworks!
+
+target 'AAMaterialText_Example' do
+  pod 'AAMaterialText', :path => '../'
+
+  target 'AAMaterialText_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end
