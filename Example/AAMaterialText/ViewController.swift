@@ -17,17 +17,15 @@ class ViewController: UIViewController {
     var materialEmail: AAMaterialTextInput {
         
         let textField = AAMaterialTextField()
-        textField.configure(with: .email,  rightImage: #imageLiteral(resourceName: "ic_login_txt_email"))
+        textField.configure(with: .email,  image: #imageLiteral(resourceName: "ic_login_txt_email"))
         
         let tf = AAMaterialTextInput(textField)
         tf.placeHolderText = "Email"
-        
         tf.textDidChange = {
             print($0)
             print(self.isValidEmail($0))
             tf.changeBorder(!self.isValidEmail($0))
         }
-    
         return tf
     }
     
@@ -44,7 +42,7 @@ class ViewController: UIViewController {
     var materialLink: AAMaterialTextInput {
         
         let textField = AAMaterialTextField()
-        textField.configure(with: .url,  rightImage:  #imageLiteral(resourceName: "calendar"))
+        textField.configure(with: .url,  image:  #imageLiteral(resourceName: "calendar"))
         let tf = AAMaterialTextInput(textField)
         tf.placeHolderText = "URL"
 
@@ -54,7 +52,7 @@ class ViewController: UIViewController {
     var materialNumeric: AAMaterialTextInput {
         
         let textField = AAMaterialTextField()
-        textField.configure(with: .numeric, rightImage: #imageLiteral(resourceName: "calendar"))
+        textField.configure(with: .numeric, image: #imageLiteral(resourceName: "calendar"))
 
         let tf = AAMaterialTextInput(textField)
         
@@ -89,7 +87,7 @@ class ViewController: UIViewController {
     var materialDate: AAMaterialTextInput {
         
         let textField = AAMaterialTextField()
-        textField.configure(with: .date,  rightImage: #imageLiteral(resourceName: "ic_login_txt_email"))
+        textField.configure(with: .date,  image: #imageLiteral(resourceName: "ic_login_txt_email"))
         
         let tf = AAMaterialTextInput(textField)
         tf.placeHolderText = "Date"
@@ -103,7 +101,7 @@ class ViewController: UIViewController {
     var materialSelection: AAMaterialTextInput {
         
         let textField = AAMaterialTextField()
-        textField.configure(with: .disabled,  rightImage: #imageLiteral(resourceName: "ic_login_txt_email"))
+        textField.configure(with: .disabled,  image: #imageLiteral(resourceName: "ic_login_txt_email"))
         
         let tf = AAMaterialTextInput(textField)
         tf.placeHolderText = "Selection"

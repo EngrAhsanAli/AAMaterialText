@@ -4,9 +4,26 @@
 //
 //  Created by Muhammad Ahsan Ali on 2020/05/31.
 //
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files (the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
 
 import UIKit
-
 
 open class AAMaterialTextInput: UIControl {
     
@@ -14,147 +31,119 @@ open class AAMaterialTextInput: UIControl {
     let placeholderLayer = VerticallyCenteredTextLayer()
     var isResigningResponder = false
     var isPlaceholderAsHint = false
-    open var textInput: AAInputField!
     var placeholderErrorText: String?
     var borderTop: NSLayoutConstraint?
     
+    open var textInput: AAInputField!
     open var tapAction: (() -> Void)?
-
     open var textDidChange: ((String) -> Void)?
-    
     open var stateDidChange: ((Bool) -> Void)?
-
+    
+    private var _inputAccessoryView: UIView?
+    
     open fileprivate(set) var isActive = false {
-        didSet {
-            stateDidChange?(isActive)
-        }
+        didSet { stateDidChange?(isActive) }
     }
     
     open var autocorrection: UITextAutocorrectionType = .no {
-        didSet {
-            textInput.autocorrection = autocorrection
-        }
+        didSet { textInput.autocorrection = autocorrection }
     }
     
     @available(iOS 10.0, *)
     open var textContentType: UITextContentType {
-        get { return textInput.currentTextContentType }
+        get { textInput.currentTextContentType }
         set { textInput.currentTextContentType = newValue }
     }
     
     open var returnKeyType: UIReturnKeyType = .default {
-        didSet {
-            textInput.changeReturnKeyType(with: returnKeyType)
-        }
+        didSet { textInput.changeReturnKeyType(with: returnKeyType) }
     }
     
     open var keyboardAppearance: UIKeyboardAppearance {
-        get { return textInput.currentKeyboardAppearance }
+        get { textInput.currentKeyboardAppearance }
         set { textInput.currentKeyboardAppearance = newValue }
     }
     
     open var clearButtonMode: UITextField.ViewMode = .whileEditing {
-        didSet {
-            textInput.changeClearButtonMode(with: clearButtonMode)
-        }
+        didSet { textInput.changeClearButtonMode(with: clearButtonMode) }
+    }
+    
+    open lazy var placeholderBackgroundColor: CGColor = { backgroundColor?.cgColor ?? UIColor.white.cgColor }() {
+        didSet { placeholderLayer.backgroundColor = placeholderBackgroundColor }
     }
     
     open var placeHolderText = "Placeholder" {
-        didSet {
-            placeholderLayer.string = placeHolderText
-        }
+        didSet { placeholderLayer.string = placeHolderText }
     }
     
-    open var placeholderAlignment: CATextLayerAlignmentMode = .natural {
-        didSet {
-            placeholderLayer.alignmentMode = placeholderAlignment
-        }
+    var placeholderAlignment: CATextLayerAlignmentMode = .natural {
+        didSet { placeholderLayer.alignmentMode = placeholderAlignment }
     }
     
     open var style: AAMaterialStyle = AAMaterialDefaultStyle() {
-        didSet {
-            configureStyle()
-        }
+        didSet { configureStyle() }
     }
     
     open var text: String? {
-        get {
-            return textInput.currentText
-        }
-        set {
-            (newValue != nil && !newValue!.isEmpty) ? layerInactiveHint() : layerHintDefault()
-            textInput.currentText = newValue
-        }
+        get { textInput.currentText }
+        set { textInput.currentText = newValue }
     }
     
     open var selectedTextRange: UITextRange? {
-        get { return textInput.currentSelectedTextRange }
+        get { textInput.currentSelectedTextRange }
         set { textInput.currentSelectedTextRange = newValue }
     }
     
     open var beginningOfDocument: UITextPosition? {
-        get { return textInput.currentBeginningOfDocument }
+        get { textInput.currentBeginningOfDocument }
     }
     
     open var font: UIFont? {
-        get { return textInput.font }
-        set { textAttributes = [NSAttributedString.Key.font: newValue as Any] }
+        get { textInput.font }
+        set { textAttributes = [.font: newValue as Any] }
     }
     
     open var textColor: UIColor? {
-        get { return textInput.textColor }
-        set { textAttributes = [NSAttributedString.Key.foregroundColor: newValue as Any] }
+        get { textInput.textColor }
+        set { textAttributes = [.foregroundColor: newValue as Any] }
     }
     
     open var lineSpacing: CGFloat? {
-        get {
-            guard let paragraph = textAttributes?[NSAttributedString.Key.paragraphStyle] as? NSParagraphStyle else { return nil }
-            return paragraph.lineSpacing
-        }
+        get { (textAttributes?[.paragraphStyle] as? NSParagraphStyle)?.lineSpacing }
         set {
             guard let spacing = newValue else { return }
-            let paragraphStyle = textAttributes?[NSAttributedString.Key.paragraphStyle] as? NSMutableParagraphStyle ?? NSMutableParagraphStyle()
+            let paragraphStyle = textAttributes?[.paragraphStyle] as? NSMutableParagraphStyle ?? NSMutableParagraphStyle()
             paragraphStyle.lineSpacing = spacing
-            textAttributes = [NSAttributedString.Key.paragraphStyle: paragraphStyle]
+            textAttributes = [.paragraphStyle: paragraphStyle]
         }
     }
     
-    open var textAlignment: NSTextAlignment? {
-        get {
-            guard let paragraph = textInput.textAttributes?[NSAttributedString.Key.paragraphStyle] as? NSParagraphStyle else { return nil }
-            return paragraph.alignment
-        }
+    open var textAlignment: NSTextAlignment {
+        get { (textInput.textAttributes?[.paragraphStyle] as? NSParagraphStyle)?.alignment ?? .left }
         set {
-            guard let alignment = newValue else { return }
-            let paragraphStyle = textAttributes?[NSAttributedString.Key.paragraphStyle] as? NSMutableParagraphStyle ?? NSMutableParagraphStyle()
-            paragraphStyle.alignment = alignment
-            textAttributes = [NSAttributedString.Key.paragraphStyle: paragraphStyle]
+            let paragraphStyle = textAttributes?[.paragraphStyle] as? NSMutableParagraphStyle ?? NSMutableParagraphStyle()
+            paragraphStyle.alignment = newValue
+            textAttributes = [.paragraphStyle: paragraphStyle]
         }
     }
     
     open var tailIndent: CGFloat? {
-        get {
-            guard let paragraph = textAttributes?[NSAttributedString.Key.paragraphStyle] as? NSParagraphStyle else { return nil }
-            return paragraph.tailIndent
-        }
+        get { (textAttributes?[.paragraphStyle] as? NSParagraphStyle)?.tailIndent }
         set {
             guard let indent = newValue else { return }
-            let paragraphStyle = textAttributes?[NSAttributedString.Key.paragraphStyle] as? NSMutableParagraphStyle ?? NSMutableParagraphStyle()
+            let paragraphStyle = textAttributes?[.paragraphStyle] as? NSMutableParagraphStyle ?? NSMutableParagraphStyle()
             paragraphStyle.tailIndent = indent
-            textAttributes = [NSAttributedString.Key.paragraphStyle: paragraphStyle]
+            textAttributes = [.paragraphStyle: paragraphStyle]
         }
     }
     
     open var headIndent: CGFloat? {
-        get {
-            guard let paragraph = textAttributes?[NSAttributedString.Key.paragraphStyle] as? NSParagraphStyle else { return nil }
-            return paragraph.headIndent
-        }
+        get { (textAttributes?[.paragraphStyle] as? NSParagraphStyle)?.headIndent }
         set {
             guard let indent = newValue else { return }
-            let paragraphStyle = textAttributes?[NSAttributedString.Key.paragraphStyle] as? NSMutableParagraphStyle ?? NSMutableParagraphStyle()
+            let paragraphStyle = textAttributes?[.paragraphStyle] as? NSMutableParagraphStyle ?? NSMutableParagraphStyle()
             paragraphStyle.headIndent = indent
-            textAttributes = [NSAttributedString.Key.paragraphStyle: paragraphStyle]
+            textAttributes = [.paragraphStyle: paragraphStyle]
         }
     }
     
@@ -176,44 +165,36 @@ open class AAMaterialTextInput: UIControl {
         textInput.configureInputView(newInputView : view)
     }
     
-    private var _inputAccessoryView: UIView?
-    
     open override var inputAccessoryView: UIView? {
         set { _inputAccessoryView = newValue }
         get { _inputAccessoryView }
     }
     
     open var contentInset: UIEdgeInsets? {
-        didSet {
-            guard let insets = contentInset else { return }
-            textInput.contentInset = insets
-        }
+        didSet { textInput.contentInset = contentInset ?? .zero }
     }
-    
     
     public init(_ type: AAInputField) {
         super.init(frame: .zero)
         self.textInput = type
         textInput.view.removeFromSuperview()
         setup()
-        
     }
     
-    required public init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-    }
+    required public init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
+    
+    override open var isFirstResponder: Bool { textInput.view.isFirstResponder }
+    
+    override open var canResignFirstResponder: Bool { textInput.view.canResignFirstResponder }
     
     open override func updateConstraints() {
-        
         pinConstraint(borderView, type: .leading, constant: 0)
         pinConstraint(borderView, type: .trailing, constant: 0)
         pinConstraint(borderView, type: .bottom, constant: 0)
         textInput.view.pinConstraint(borderView, type: .bottom, constant: 0)
-        
         borderView.pinConstraint(textInput.view, type: .leading, constant: style.margin.left)
         borderView.pinConstraint(textInput.view, type: .trailing, constant: -style.margin.right)
         textInput.view.pinConstraint(borderView, type: .top, constant: 0)
-        
         updateBorderTop()
         super.updateConstraints()
     }
@@ -284,17 +265,18 @@ open class AAMaterialTextInput: UIControl {
                                  foregroundColor: style.borderColor.0.cgColor,
                                  text: placeHolderText)
         borderView.changeColor(with: style.borderColor.0)
-        
-        placeholderLayer.backgroundColor = backgroundColor?.cgColor ?? UIColor.white.cgColor
+        placeholderLayer.backgroundColor = placeholderBackgroundColor
     }
     
-    fileprivate func layerInactiveHint() {
+    fileprivate func _layerInactiveHint() {
         isPlaceholderAsHint = true
         configurePlaceholderWith(fontSize: style.placeholderMinFont,
                                  foregroundColor: style.borderColor.1.cgColor,
                                  text: placeHolderText)
+    }
+    fileprivate func layerInactiveHint() {
+        _layerInactiveHint()
         borderView.animateState()
-        
     }
     
     fileprivate func layerHintDefault() {
@@ -303,9 +285,7 @@ open class AAMaterialTextInput: UIControl {
                                  foregroundColor: style.borderColor.1.cgColor,
                                  text: placeHolderText)
         borderView.animateState()
-        placeholderLayer.backgroundColor = backgroundColor?.cgColor ?? UIColor.white.cgColor
-        
-        
+        placeholderLayer.backgroundColor = placeholderBackgroundColor
     }
     
     fileprivate func configurePlaceholderAsErrorHint() {
@@ -314,7 +294,6 @@ open class AAMaterialTextInput: UIControl {
                                  foregroundColor: style.borderColor.2.cgColor,
                                  text: placeholderErrorText)
         borderView.changeColor(with: style.borderColor.2)
-        
     }
     
     fileprivate func configurePlaceholderWith(fontSize: CGFloat, foregroundColor: CGColor, text: String?) {
@@ -329,7 +308,6 @@ open class AAMaterialTextInput: UIControl {
         let function = CAMediaTimingFunction(controlPoints: 0.3, 0.0, 0.5, 0.95)
         transactionAnimation(with: duration, timingFuncion: function, animations: applyConfiguration)
         updateBorderTop()
-
     }
         
     @objc fileprivate func viewWasTapped(sender: UIGestureRecognizer) {
@@ -348,7 +326,6 @@ open class AAMaterialTextInput: UIControl {
         borderView.layer.cornerRadius = style.cornerRadius
         invalidateIntrinsicContentSize()
         layoutIfNeeded()
-
     }
     
     @discardableResult
@@ -360,10 +337,6 @@ open class AAMaterialTextInput: UIControl {
         return firstResponder
     }
     
-    override open var isFirstResponder: Bool {
-        return textInput.view.isFirstResponder
-    }
-    
     @discardableResult
     override open func resignFirstResponder() -> Bool {
         guard !isResigningResponder else { return true }
@@ -371,14 +344,8 @@ open class AAMaterialTextInput: UIControl {
         isResigningResponder = true
         let resignFirstResponder = textInput.view.resignFirstResponder()
         isResigningResponder = false
-        
-        if let textInputError = textInput as? TextInputError {
-            textInputError.removeErrorHintMessage()
-        }
-        
-        if placeholderErrorText == nil {
-            animateToInactiveState()
-        }
+        (textInput as? TextInputError)?.removeErrorHintMessage()
+        if placeholderErrorText == nil { animateToInactiveState() }
         return resignFirstResponder
     }
     
@@ -390,95 +357,70 @@ open class AAMaterialTextInput: UIControl {
         animateHintLayer(to: layerInactiveHint)
     }
     
-    override open var canResignFirstResponder: Bool {
-        return textInput.view.canResignFirstResponder
-    }
-    
     override open var canBecomeFirstResponder: Bool {
         guard !isResigningResponder else { return false }
         return textInput.view.canBecomeFirstResponder
     }
     
     open func changeBorder(_ isError: Bool) {
-        if isError {
-            show(error: placeHolderText, placeholderText: nil)
-        }
-        else {
-            clearError()
-        }
-
+        if isError { show(error: placeHolderText, placeholderText: nil) }
+        else { clearError() }
     }
     
     open func show(error errorMessage: String, placeholderText: String? = nil) {
         placeholderErrorText = errorMessage
-        if let textInput = textInput as? TextInputError {
-            textInput.configureErrorState(with: placeholderText)
-        }
+        (textInput as? TextInputError)?.configureErrorState(with: placeholderText)
         animateHintLayer(to: configurePlaceholderAsErrorHint)
-        
     }
     
     open func clearError() {
         placeholderErrorText = nil
-        if let textInputError = textInput as? TextInputError {
-            textInputError.removeErrorHintMessage()
-        }
-        if isActive {
-            animateHintLayer(to: layerActiveHint)
-        } else {
-            animateToInactiveState()
-        }
-        
+        (textInput as? TextInputError)?.removeErrorHintMessage()
+        if isActive { animateHintLayer(to: layerActiveHint) }
+        else { animateToInactiveState() }
     }
     
     fileprivate func configureStyle() {
         styleDidChange()
-        if isActive {
-            layerActiveHint()
-        } else {
-            isPlaceholderAsHint ? layerInactiveHint() : layerHintDefault()
-        }
+        if isActive { layerActiveHint() }
+        else { isPlaceholderAsHint ? layerInactiveHint() : layerHintDefault() }
     }
     
     open func setText(_ textString: String) {
         text = textString
         textDidChange?(textString)
+        
+        DispatchQueue.main.async {
+            if !textString.isEmpty {
+                self.updateBorderTop()
+                self._layerInactiveHint()
+            }
+            else {
+                self.layerHintDefault()
+            }
+        }
     }
     
 }
 
-
-
 extension AAMaterialTextInput: AAMaterialDelegate {
     
-    open func textInputDidBeginEditing(textInput: AAInputField) {
-        becomeFirstResponder()
-    }
+    open func textInputDidBeginEditing(textInput: AAInputField) { becomeFirstResponder() }
     
-    open func textInputDidEndEditing(textInput: AAInputField) {
-        resignFirstResponder()
-    }
+    open func textInputDidEndEditing(textInput: AAInputField) { resignFirstResponder() }
     
     open func textInputDidChange(textInput: AAInputField) {
         sendActions(for: .editingChanged)
         textDidChange?(textInput.currentText!)
     }
     
-    open func textInput(textInput: AAInputField, shouldChangeCharactersInRange range: NSRange, replacementString string: String) -> Bool {
-        return true
-    }
+    open func textInput(textInput: AAInputField, shouldChangeCharactersInRange range: NSRange, replacementString string: String) -> Bool { true }
     
-    open func textInputShouldBeginEditing(textInput: AAInputField) -> Bool {
-        return true
-    }
+    open func textInputShouldBeginEditing(textInput: AAInputField) -> Bool { true }
     
-    open func textInputShouldEndEditing(textInput: AAInputField) -> Bool {
-        return true
-    }
+    open func textInputShouldEndEditing(textInput: AAInputField) -> Bool { true }
     
-    open func textInputShouldReturn(textInput: AAInputField) -> Bool {
-        return true
-    }
+    open func textInputShouldReturn(textInput: AAInputField) -> Bool { true }
 }
 
 
@@ -497,23 +439,16 @@ fileprivate extension AAMaterialTextInput {
         var width = placeHolderText.widthOfString(usingFont: style.inputFont) + 20
         let maxWidth = textInput.view.bounds.size.width
         let placeholderWidth = maxWidth - style.margin.right
-        if width > placeholderWidth {
-            width = placeholderWidth
-        }
+        if width > placeholderWidth { width = placeholderWidth }
         let height = placeHolderText.height(withConstrainedWidth: width, font: style.inputFont)
         return CGSize(width: width, height: height)
     }
     
     
     func updateBorderTop() {
-        
-        if borderTop == nil {
-            borderTop = pinConstraint(borderView, type: .top, constant: style.margin.top)
-        }
+        if borderTop == nil { borderTop = pinConstraint(borderView, type: .top, constant: style.margin.top) }
         let borderTop = self.borderTop!
-        
         let calculatedHeight = hintSize.height
-        
         if calculatedHeight > style.placeholderMinFont {
             if let text = text, text.isEmpty, !isActive {
                 borderTop.constant = style.margin.top
@@ -522,7 +457,6 @@ fileprivate extension AAMaterialTextInput {
                 borderTop.constant = calculatedHeight - style.margin.top
             }
         }
-    
     }
     
     func layoutPlaceholderLayer() {
@@ -533,27 +467,20 @@ fileprivate extension AAMaterialTextInput {
             hintHeight += style.margin.top
         }
         var placeholderPosition: CGPoint {
-            let hintPosition = CGPoint(
-                x: placeholderAlignment != .natural ? 0 : style.margin.left,
-                y: hintHeight
-            )
-            
-            let defaultPosition = CGPoint(
-                x: placeholderAlignment != .natural ? 0 : style.margin.left,
-                y: (style.margin.bottom + style.margin.top)/2
-            )
+            var hintX: CGFloat = style.margin.left
+            if textAlignment == .right {
+                hintX = frame.size.width - style.margin.right - hintSize.width
+            }
+            let hintPosition = CGPoint(x: hintX, y: hintHeight)
+            let defaultPosition = CGPoint(x: hintX, y: (style.margin.bottom + style.margin.top)/2)
             return isPlaceholderAsHint ? hintPosition : defaultPosition
         }
         placeholderLayer.frame = CGRect(origin: placeholderPosition, size: hintSize)
     }
     
-    var intrinsicContentHeight: CGFloat {
-        textInput.view.intrinsicContentSize.height
-    }
-    
+    var intrinsicContentHeight: CGFloat { textInput.view.intrinsicContentSize.height }
     
 }
-
 
 internal class VerticallyCenteredTextLayer: CATextLayer {
     

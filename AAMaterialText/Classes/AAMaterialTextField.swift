@@ -4,6 +4,24 @@
 //
 //  Created by Muhammad Ahsan Ali on 2020/05/31.
 //
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files (the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
 
 import UIKit
 
@@ -31,76 +49,70 @@ final public class AAMaterialTextField: UITextField {
     
     @discardableResult
     override public func becomeFirstResponder() -> Bool {
-        if let alignment = (textAttributes?[NSAttributedString.Key.paragraphStyle] as? NSMutableParagraphStyle)?.alignment {
-            textAlignment = alignment
-        }
+        setAllignment()
         return super.becomeFirstResponder()
     }
     
     @objc fileprivate func textFieldDidChange() {
         textInputDelegate?.textInputDidChange(textInput: self)
     }
+    
+    func setAllignment() {
+        guard let alignment = (textAttributes?[.paragraphStyle] as? NSMutableParagraphStyle)?.alignment else { return }
+        textAlignment = alignment
+    }
 }
 
 extension AAMaterialTextField: AAInputField {
     
-    public func configureInputView(newInputView: UIView) {
-        inputView = newInputView
-    }
-    
-    public func changeReturnKeyType(with newReturnKeyType: UIReturnKeyType) {
-        returnKeyType = newReturnKeyType
-    }
-    
-    public func currentPosition(from: UITextPosition, offset: Int) -> UITextPosition? {
-        return position(from: from, offset: offset)
-    }
-    
-    public func changeClearButtonMode(with newClearButtonMode: UITextField.ViewMode) {
-        clearButtonMode = newClearButtonMode
-    }
-    
     public var currentText: String? {
-        get { return text }
-        set { self.text = newValue }
+        get { text }
+        set {
+            text = newValue
+            setAllignment()
+        }
     }
     
     public var autocorrection: UITextAutocorrectionType {
-        get { return self.autocorrectionType }
-        set { self.autocorrectionType = newValue }
+        get { autocorrectionType }
+        set { autocorrectionType = newValue }
     }
     
     @available(iOS 10.0, *)
     public var currentTextContentType: UITextContentType {
-        get { return self.textContentType }
-        set { self.textContentType = newValue }
+        get { textContentType }
+        set { textContentType = newValue }
     }
     
     public var currentSelectedTextRange: UITextRange? {
-        get { return self.selectedTextRange }
-        set { self.selectedTextRange = newValue }
+        get { selectedTextRange }
+        set { selectedTextRange = newValue }
     }
     
     public var currentBeginningOfDocument: UITextPosition? {
-        get { return self.beginningOfDocument }
+        get { beginningOfDocument }
     }
     
     public var currentKeyboardAppearance: UIKeyboardAppearance {
-        get { return self.keyboardAppearance }
-        set { self.keyboardAppearance = newValue}
+        get { keyboardAppearance }
+        set { keyboardAppearance = newValue}
     }
+    
+    public func configureInputView(newInputView: UIView) { inputView = newInputView }
+    
+    public func changeReturnKeyType(with newReturnKeyType: UIReturnKeyType) { returnKeyType = newReturnKeyType }
+    
+    public func currentPosition(from: UITextPosition, offset: Int) -> UITextPosition? { position(from: from, offset: offset) }
+    
+    public func changeClearButtonMode(with newClearButtonMode: UITextField.ViewMode) { clearButtonMode = newClearButtonMode }
+    
 }
 
 extension AAMaterialTextField: TextInputError {
     
-    public func configureErrorState(with message: String?) {
-        placeholder = message
-        
-    }
+    public func configureErrorState(with message: String?) { placeholder = message }
     
-    public func removeErrorHintMessage() {
-        placeholder = nil
-    }
+    public func removeErrorHintMessage() { placeholder = nil }
 }
 
 extension AAMaterialTextField: UITextFieldDelegate {
@@ -114,22 +126,22 @@ extension AAMaterialTextField: UITextFieldDelegate {
     }
     
     public func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-        return textInputDelegate?.textInput(textInput: self, shouldChangeCharactersInRange: range, replacementString: string) ?? true
+        textInputDelegate?.textInput(textInput: self, shouldChangeCharactersInRange: range, replacementString: string) ?? true
     }
     
     public func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
-        return textInputDelegate?.textInputShouldBeginEditing(textInput: self) ?? true
+        textInputDelegate?.textInputShouldBeginEditing(textInput: self) ?? true
     }
     
     public func textFieldShouldEndEditing(_ textField: UITextField) -> Bool {
-        return textInputDelegate?.textInputShouldEndEditing(textInput: self) ?? true
+        textInputDelegate?.textInputShouldEndEditing(textInput: self) ?? true
     }
     
     public func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        return textInputDelegate?.textInputShouldReturn(textInput: self) ?? true
+        textInputDelegate?.textInputShouldReturn(textInput: self) ?? true
     }
     
     public func textFieldShouldClear(_ textField: UITextField) -> Bool {
-        return true
+        true
     }
 }
